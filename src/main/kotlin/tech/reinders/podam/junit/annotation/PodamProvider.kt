@@ -7,4 +7,4 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class PodamProvider(val supplier: KClass<out PodamSupplier> = DefaultPodamPovider::class)
+annotation class PodamProvider(val value: KClass<out PodamSupplier> = DefaultPodamPovider::class)

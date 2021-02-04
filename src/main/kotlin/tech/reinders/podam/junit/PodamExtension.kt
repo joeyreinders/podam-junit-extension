@@ -16,20 +16,32 @@ class PodamExtension : BeforeEachCallback, ParameterResolver {
     }
 
     override fun resolveParameter(parameterContext: ParameterContext?, extensionContext: ExtensionContext?): Any {
-        TODO("Not yet implemented")
+        initPodamFactoryIfNeeded(extensionContext!!)
+        return manufacturePojo(parameterContext!!.parameter, extensionContext)
     }
 
     override fun beforeEach(context: ExtensionContext?) {
-        val podamFactory = PodamExtension.retrievePodamSupplier(context!!).objectInstance!!.getPodamFactory()
-
-        val store = getStore(context)
-        store.put(PODAMS, emptySet<Any>())
-        store.put(FACTORY, podamFactory);
+        initPodamFactoryIfNeeded(context!!)
 
         initPodamElements(context)
     }
 
-    companion object {
+    private fun initPodamFactoryIfNeeded(context: ExtensionContext) {
+        val store = getStore(context)
+        if (store.get(FACTORY) == null) {
+            val supplierClass = retrievePodamSupplier(context)
+            var supplier = supplierClass.objectInstance
+            if (supplier == null) {
+                val constructor = supplierClass.java.getDeclaredConstructor()
+                constructor.isAccessible = true
+                supplier = constructor.newInstance()
+            }
+
+            store.put(FACTORY, supplier!!.getPodamFactory())
+        }
+    }
+
+    private companion object {
         private fun retrievePodamSupplier(context: ExtensionContext): KClass<out PodamSupplier> {
             var currentContext = context
             var annotation: Optional<PodamProvider>
@@ -44,7 +56,7 @@ class PodamExtension : BeforeEachCallback, ParameterResolver {
             return if(! annotation.isPresent) {
                 DefaultPodamPovider::class
             } else {
-                annotation.get().supplier
+                annotation.get().value
             }
         }
     }
