@@ -6,6 +6,7 @@ import uk.co.jemos.podam.api.PodamFactory
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Field
 import java.lang.reflect.Parameter
+import java.lang.reflect.ParameterizedType
 
 private val PODAM_JUNIT = ExtensionContext.Namespace.create("tech.reinders.podam.junit")
 internal const val FACTORY = "podamfactory"
@@ -22,18 +23,33 @@ fun manufacturePojo(element: AnnotatedElement, extensionContext: ExtensionContex
     val podamFactory = getStore(extensionContext).get(FACTORY, PodamFactory::class.java)
     val annotation = element.getAnnotation(Podam::class.java)
     val genericTypeArgs = annotation.genericTypeArgs.map { type -> type.java }.toTypedArray()
-    val javaClassType = if (element is Parameter) {
-        element.type
-    } else if (element is Field) {
-        element.type
-    } else {
-        throw UnsupportedOperationException("Not yet supported for type ${element::class.qualifiedName}")
-    }
+    val javaClassType = getJavaClass(element)
 
     return if (annotation.manufacturePojoWithFullData) {
         podamFactory.manufacturePojoWithFullData(javaClassType, *genericTypeArgs)
     } else {
         podamFactory.manufacturePojo(javaClassType, *genericTypeArgs)
+    }
+}
+
+fun getJavaClass(element: AnnotatedElement): Class<*> = when (element) {
+    is Parameter -> {
+        element.type
+    }
+    is Field -> {
+        if (Collection::class.java.isAssignableFrom(element.type)) {
+            val actualTypeArguments = (element.genericType as ParameterizedType).actualTypeArguments
+            if (actualTypeArguments.isEmpty()) {
+                throw UnsupportedOperationException("TODO")
+            }
+
+            actualTypeArguments[0] as Class<*>
+        } else {
+            element.type
+        }
+    }
+    else -> {
+        throw UnsupportedOperationException("Not yet supported for type ${element::class.qualifiedName}")
     }
 }
 

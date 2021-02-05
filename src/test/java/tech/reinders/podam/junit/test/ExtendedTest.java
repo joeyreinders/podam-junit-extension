@@ -4,18 +4,33 @@ import org.junit.jupiter.api.Test;
 import tech.reinders.podam.junit.annotation.Podam;
 import tech.reinders.podam.junit.model.SimpleModel;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ExtendedTest extends SimpleTest {
     @Podam
     private final SimpleModel finalNullField = null;
     private final SimpleModel copyOfObjectToBeFilled = new SimpleModel();
+
     @Podam
     private final SimpleModel objectToBeFilled = copyOfObjectToBeFilled;
+
     @Podam
     private SimpleModel childSimpleModel;
+
     @Podam
     private SimpleModel simpleModel;
+
+    @Podam
+    private List<SimpleModel> listOfModels;
+
+    @Test
+    void testListOfModels() {
+        assertNotNull(this.listOfModels);
+        assertFalse(this.listOfModels.isEmpty());
+        assertTrue(this.listOfModels.get(0) instanceof SimpleModel);
+    }
 
     @Test
     void testChildAndParent() {
