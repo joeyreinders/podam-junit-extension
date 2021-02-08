@@ -17,18 +17,18 @@ class PodamExtension : BeforeEachCallback, ParameterResolver {
 
     override fun resolveParameter(parameterContext: ParameterContext?, extensionContext: ExtensionContext?): Any {
         initPodamFactoryIfNeeded(extensionContext!!)
-        return manufacturePojo(parameterContext!!.parameter, extensionContext)
+        return PodamJUnitUtils.manufacturePojo(parameterContext!!.parameter, extensionContext)
     }
 
     override fun beforeEach(context: ExtensionContext?) {
         initPodamFactoryIfNeeded(context!!)
 
-        initPodamElements(context)
+        PodamJUnitUtils.initPodamElements(context)
     }
 
     private fun initPodamFactoryIfNeeded(context: ExtensionContext) {
-        val store = getStore(context)
-        if (store.get(FACTORY) == null) {
+        val store = PodamJUnitUtils.getStore(context)
+        if (store.get(PodamJUnitUtils.FACTORY) == null) {
             val supplierClass = retrievePodamSupplier(context)
             var supplier = supplierClass.objectInstance
             if (supplier == null) {
@@ -37,7 +37,7 @@ class PodamExtension : BeforeEachCallback, ParameterResolver {
                 supplier = constructor.newInstance()
             }
 
-            store.put(FACTORY, supplier!!.getPodamFactory())
+            store.put(PodamJUnitUtils.FACTORY, supplier!!.getPodamFactory())
         }
     }
 
